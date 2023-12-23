@@ -14,4 +14,7 @@ public class AuthController {
     public String adminLogin() {
         return "success";
     }
+
+    @PostMapping("/oauth2/authorization/google") // 고정된 주소
+    public String googleLogin() {return "googleLoginSuccess";}
 }
