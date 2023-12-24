@@ -29,7 +29,7 @@ public class CustomSecurity {
                         .anyRequest().permitAll()
 
                 )
-                // OAuth2 로그인 구성 추가
+                // OAuth2 로그인 구성 추가1
                 .oauth2Login(oauth2Login -> oauth2Login
                                 .loginPage("/login") // 사용자 정의 로그인 페이지 (옵션)
                                 // 추가적인 OAuth2 로그인 구성...
