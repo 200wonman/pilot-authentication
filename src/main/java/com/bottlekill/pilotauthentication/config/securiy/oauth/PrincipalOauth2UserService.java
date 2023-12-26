@@ -53,7 +53,7 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
 //        locale=ko}
 
 
-            return super.loadUser(userRequest); // 그럼 유저정보들을 반환하게됨
+        return super.loadUser(userRequest); // 그럼 유저정보들을 반환하게됨
     }
 }
 
