@@ -1,5 +1,8 @@
 package com.bottlekill.pilotauthentication.config.securiy.oauth;
 
+import com.bottlekill.pilotauthentication.controller.model.User;
+import com.bottlekill.pilotauthentication.controller.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -13,7 +16,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
 
+    @Autowired
+    private UserRepository userRepository;
 
+    // sns로그인 데이터를 후처리하는곳
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
 
@@ -45,15 +51,36 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
 
         // 유저 정보들 보기
         System.out.println("user Request3 : " + super.loadUser(userRequest).getAttributes());
-//        user Request3 : {sub=106694311679003849089,
+//        user Request3 : {
+//        sub=106694311679003849089,
 //        name=김주예, given_name=주예, family_name=김,
 //        picture=https://lh3.googleusercontent.com/a/ACg8ocIiZP3oxetgmpSm-5jAGhZiVj4DHz3hGeFA0eUEB6lU=s96-c,
 //        email=rlawndp@gmail.com,
 //        email_verified=true,
 //        locale=ko}
 
+        OAuth2User oAuth2User = super.loadUser(userRequest);
 
-        return super.loadUser(userRequest); // 그럼 유저정보들을 반환하게됨
+        String provider = userRequest.getClientRegistration().getClientId();//google
+        String providerId = oAuth2User.getAttribute("sub");
+        String email = oAuth2User.getAttribute("email");
+        String username = provider + "_" + providerId; // 중복제거를 위해 조합
+        String role = "ROLE_USER";
+
+        User userEntity =  userRepository.findByUsername(username);
+
+        if (userEntity==null){
+            userEntity = User.builder()
+                    .username(username)
+                    .email(email)
+                    .role(role)
+                    .providerId(providerId)
+                    .provider(provider)
+                    .build();
+            userRepository.save(userEntity);
+        }
+
+        return new PrincipalDetails(userEntity,oAuth2User.getAttributes());
     }
 }
 
