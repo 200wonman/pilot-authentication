@@ -13,11 +13,12 @@ public class AuthController {
 
 //    private UserRepository userRepository;
 
-    @PostMapping("/user")
+    @GetMapping("/user")
     public @ResponseBody String user(@AuthenticationPrincipal PrincipalDetails principalDetails){
+        System.out.println(principalDetails.getUser());
         return "로그인한 회원이 접속 가능";
     }
-    @PostMapping("/login")
+    @GetMapping("/login")
     public String login() {
         return "success";
     }
@@ -28,7 +29,4 @@ public class AuthController {
     @PostMapping("/oauth2/authorization/google") // 고정된 주소
     public String googleLogin() {return "googleLoginSuccess";}
 
-//    public UserRepository getUserRepository() {
-//        return userRepository;
-//    }
 }
