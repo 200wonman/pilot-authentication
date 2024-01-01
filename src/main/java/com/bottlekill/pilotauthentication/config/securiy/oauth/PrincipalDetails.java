@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
@@ -25,8 +26,9 @@ public class PrincipalDetails implements /*UserDetails, */OAuth2User {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-
-        return null;
+        Collection<GrantedAuthority> collet = new ArrayList<GrantedAuthority>();
+        collet.add(()->{ return user.getRole();});
+        return collet;
     }
 
     // 리소스 서버로 부터 받는 회원정보
@@ -40,7 +42,6 @@ public class PrincipalDetails implements /*UserDetails, */OAuth2User {
 
     @Override
     public String getName() {
-
-        return (String) attributes.get("sub");
+        return user.getId()+"";
     }
 }

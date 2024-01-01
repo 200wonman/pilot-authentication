@@ -28,5 +28,7 @@ public class AuthController {
     }
     @PostMapping("/oauth2/authorization/google") // 고정된 주소
     public String googleLogin() {return "googleLoginSuccess";}
+    @PostMapping("/oauth2/authorization/naver") // 고정된 주소
+    public String naverLogin() {return "naverLoginSuccess";}
 
 }
