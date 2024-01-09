@@ -1,0 +1,15 @@
+server:
+  port: 8081
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update
+  #     ddl-auto 참조 : docs/about_hibernate.md
+
+  h2:
+    console:
+      enabled: true # /h2-console 설정 TODO :: 실 개발시 지우면 좋은 주석들
+      path: /h2-console
+  datasource:
+    url: jdbc:h2:mem:bottle_kill # 메모리 H2 DB 경로 설정 TODO :: 실 개발시 지우면 좋은 주석들
