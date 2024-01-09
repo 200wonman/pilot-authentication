@@ -1,10 +1,19 @@
 package com.bottlekill.pilotauthentication.config.securiy.oauth;
 
+import com.bottlekill.pilotauthentication.config.securiy.oauth.provider.GoogleUserInfo;
+import com.bottlekill.pilotauthentication.config.securiy.oauth.provider.NaverUserInfo;
+import com.bottlekill.pilotauthentication.config.securiy.oauth.provider.OAuth2UserInfo;
+import com.bottlekill.pilotauthentication.controller.model.User;
+import com.bottlekill.pilotauthentication.controller.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+
+import java.util.Map;
+import java.util.Optional;
 
 
 //public class PrincipalOauth2UserService extends DefaultO{
@@ -13,47 +22,60 @@ import org.springframework.stereotype.Service;
 @Service
 public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
 
+    @Autowired
+    private UserRepository userRepository;
 
+    // userRequest 는 code를 받아서 accessToken을 응답 받은 객체
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+        OAuth2User oAuth2User = super.loadUser(userRequest); // google의 회원 프로필 조회
 
-        System.out.println("user Request1 : " + userRequest.getClientRegistration());
-//        getClientRegistration() 메소드는
-//        OAuth2UserRequest 객체에서 호출됩니다. 인증 과정에 사용된 OAuth 2.0 클라이언트의 등록 정보를 반환합니다.
-//        클라이언트 등록 정보(ClientRegistration)에는 OAuth 2.0 공급자(예: Google, Facebook 등)에 대한 구성 세부 정보가 포함되어 있습니다.
-//        이 정보는 OAuth 2.0 인증 과정을 시작하고, 사용자 정보를 요청하며, 토큰을 교환할 때 필요한 중요한 정보를 담고 있습니다.
-//        1. 클라이언트 ID(Client ID): OAuth 2.0 공급자에 등록할 때 제공받는 고유 식별자입니다.
-//        2. 클라이언트 비밀(Client Secret): 클라이언트 인증에 사용되는 비밀 키입니다.
-//        3. 리다이렉트 URI(Redirect URI): OAuth 2.0 공급자가 인증 후 사용자를 리다이렉트할 URI입니다.
-//        4. 인증 및 토큰 엔드포인트(Authorization and Token Endpoints): OAuth 2.0 공급자의 인증 및 토큰 교환을 위한 엔드포인트 주소입니다.
-//        5. 스코프(Scopes): 애플리케이션이 요청하는 액세스 범위. 예를 들어, 사용자 프로필 정보, 이메일 주소 등에 대한 접근 권한을 의미합니다.
-//         ClientRegistration{registrationId='google',
-//         clientId='533338826248-vtbnpfb5stj298ka2rquk244bhpu1ge3.apps.googleusercontent.com',
-//         clientSecret='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',
-//         clientAuthenticationMethod=org.springframework.security.oauth2.core.ClientAuthenticationMethod@4fcef9d3,
-//         authorizationGrantType=org.springframework.security.oauth2.core.AuthorizationGrantType@5da5e9f3,
-//         redirectUri='{baseUrl}/{action}/oauth2/code/{registrationId}',
-//         scopes=[email, profile],
-//         providerDetails=org.springframework.security.oauth2.client.registration.ClientRegistration$ProviderDetails@2698167,
-//         clientName='Google'}
+        // code를 통해 구성한 정보
+        System.out.println("userRequest clientRegistration : " + userRequest.getClientRegistration());
+        // token을 통해 응답받은 회원정보
+        System.out.println("oAuth2User : " + oAuth2User);
 
+        return processOAuth2User(userRequest, oAuth2User);
+    }
 
-        System.out.println("user Request2 : " + userRequest.getAccessToken().getTokenValue());
-//        액세스 토큰(Access Token)은 OAuth2 인증 프로세스의 중요한 부분으로,
-//        클라이언트(여기서는 당신의 애플리케이션)가 리소스 서버(예: 사용자 정보를 제공하는 Google, Facebook 서버 등)에
-//        접근할 수 있는 권한을 증명하는데 사용됩니다.
+    private OAuth2User processOAuth2User(OAuth2UserRequest userRequest, OAuth2User oAuth2User) {
 
-        // 유저 정보들 보기
-        System.out.println("user Request3 : " + super.loadUser(userRequest).getAttributes());
-//        user Request3 : {sub=106694311679003849089,
-//        name=김주예, given_name=주예, family_name=김,
-//        picture=https://lh3.googleusercontent.com/a/ACg8ocIiZP3oxetgmpSm-5jAGhZiVj4DHz3hGeFA0eUEB6lU=s96-c,
-//        email=rlawndp@gmail.com,
-//        email_verified=true,
-//        locale=ko}
+        // Attribute를 파싱해서 공통 객체로 묶는다. 관리가 편함.
+        OAuth2UserInfo oAuth2UserInfo = null;
+        if (userRequest.getClientRegistration().getRegistrationId().equals("google")) {
+            System.out.println("구글 로그인 요청~~");
+            oAuth2UserInfo = new GoogleUserInfo(oAuth2User.getAttributes());
+        } else if (userRequest.getClientRegistration().getRegistrationId().equals("naver")){
+            System.out.println("네이버 로그인 요청~~");
+            oAuth2UserInfo = new NaverUserInfo((Map)oAuth2User.getAttributes().get("response"));
+        } else {
+            System.out.println("우리는 구글과 페이스북만 지원해요 ㅎㅎ");
+        }
 
+        //System.out.println("oAuth2UserInfo.getProvider() : " + oAuth2UserInfo.getProvider());
+        //System.out.println("oAuth2UserInfo.getProviderId() : " + oAuth2UserInfo.getProviderId());
+        Optional<User> userOptional =
+                userRepository.findByProviderAndProviderId(oAuth2UserInfo.getProvider(), oAuth2UserInfo.getProviderId());
 
-            return super.loadUser(userRequest); // 그럼 유저정보들을 반환하게됨
+        User user;
+
+        if (userOptional.isPresent()) {
+            user = userOptional.get();
+            // user가 존재하면 update 해주기
+            user.setEmail(oAuth2UserInfo.getEmail());
+            userRepository.save(user);
+        } else {
+            // user의 패스워드가 null이기 때문에 OAuth 유저는 일반적인 로그인을 할 수 없음.
+            user = User.builder()
+                    .username(oAuth2UserInfo.getProvider() + "_" + oAuth2UserInfo.getProviderId())
+                    .email(oAuth2UserInfo.getEmail())
+                    .role("ROLE_USER")
+                    .provider(oAuth2UserInfo.getProvider())
+                    .providerId(oAuth2UserInfo.getProviderId())
+                    .build();
+            userRepository.save(user);
+        }
+
+        return new PrincipalDetails(user, oAuth2User.getAttributes());
     }
 }
-

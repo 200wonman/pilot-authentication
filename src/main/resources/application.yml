@@ -1,11 +1,9 @@
 spring:
-  security:
-    oauth2:
-      client:
-        registration:
-          google:
-            client-id: ${CLIENT-ID}
-            client-secret: ${CLIENT-SECRET}
-            scope:
-              - email
-              - profile
+  profiles:
+    active: # 사용할 환경 설정
+      oauth
+      #- develop
+      #- production
+    include:
+      - secret #클라이언트 아이디/시크릿
+
